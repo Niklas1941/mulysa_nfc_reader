@@ -65,6 +65,7 @@ char endpoint[ENDPOINT_LENGTH];
 WiFiManager wifiManager;
 bool saveconfig = false;
 //#define NEWSETTINGS_PIN (12)
+#define RELAY_PIN (22)
 
 // card reader
 #define SPI_SS_PIN (5)
@@ -131,6 +132,7 @@ void setup()
   Serial.println("Starting up");
 
   //  pinMode(NEWSETTINGS_PIN, INPUT_PULLUP);
+  pinMode(RELAY_PIN, OUTPUT);
 
   nfc.begin();
   uint32_t versiondata = nfc.getFirmwareVersion();
@@ -253,6 +255,14 @@ void loop(void)
     int httpCode = http.POST(payload);
     Serial.print("Got response: ");
     Serial.println(httpCode);
+    if(httpCode == 200) {
+      Serial.println("access granted");
+      digitalWrite(RELAY_PIN, HIGH);
+      delay(500);
+      digitalWrite(RELAY_PIN, LOW);
+    } else {
+      Serial.println("access denied");
+    }
     http.end();
   }
   else
