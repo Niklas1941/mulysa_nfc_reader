@@ -71,6 +71,9 @@ bool saveconfig = false;
 PN532_SPI pn532spi(SPI, SPI_SS_PIN);
 PN532 nfc(pn532spi);
 
+// our chipid
+String chipId = String((uint32_t)ESP.getEfuseMac(), HEX);
+
 // callback for saving the config
 void configModeCallback(WiFiManager *wifiManager)
 {
@@ -213,9 +216,9 @@ void loop(void)
   if (cardRead)
   {
     Serial.print("Card with cardUID value: ");
+    Serial.print("0x");
     for (uint8_t i = 0; i < cardUIDLength; i++)
     {
-      Serial.print("0x");
       Serial.print(cardUID[i], HEX);
     }
     Serial.println("");
@@ -230,7 +233,24 @@ void loop(void)
 
     HTTPClient http;
     http.begin(endpoint, root_ca);
-    int httpCode = http.GET();
+    http.addHeader("Content-Type", "application/json");
+
+    // TODO: there must be a better way to build the json string
+    String payload = "{\"";
+    payload.concat("deviceid\":\"");
+    payload.concat(chipId);
+    payload.concat("\",\"");
+    payload.concat("cardid\":\"");
+    for (uint8_t i = 0; i < cardUIDLength; i++)
+    {
+      payload.concat(String(cardUID[i], HEX));
+    }
+    payload.concat("\"}");
+
+    Serial.print("request data: ");
+    Serial.println(payload);
+
+    int httpCode = http.POST(payload);
     Serial.print("Got response: ");
     Serial.println(httpCode);
     http.end();
