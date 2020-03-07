@@ -64,7 +64,7 @@ char endpoint[ENDPOINT_LENGTH];
 
 WiFiManager wifiManager;
 bool saveconfig = false;
-//#define NEWSETTINGS_PIN (12)
+#define RESET_SETTINGS_PIN (21)
 #define RELAY_PIN (22)
 
 // card reader
@@ -131,7 +131,7 @@ void setup()
   Serial.begin(115200);
   Serial.println("Starting up");
 
-  //  pinMode(NEWSETTINGS_PIN, INPUT_PULLUP);
+  pinMode(RESET_SETTINGS_PIN, INPUT_PULLUP);
   pinMode(RELAY_PIN, OUTPUT);
 
   nfc.begin();
@@ -175,14 +175,14 @@ void setup()
   if (!SPIFFS.exists("/config.json"))
   {
     Serial.println("Generating default config.json in SPIFFS");
-    writeConfig("{\"endpoint\": \"https://mulysa/access/\"}");
+    writeConfig("{\"endpoint\": \"https://mulysa.example.com/api/v1/access/nfc/\"}");
   }
 
   // start wifi
   // callback for saving
   wifiManager.setAPCallback(configModeCallback);
   // wifi parameter settings
-  WiFiManagerParameter endpointparameter("endpoint", "Endpoint: https://foo/bar/", endpoint, ENDPOINT_LENGTH);
+  WiFiManagerParameter endpointparameter("endpoint", "Endpoint: https://mulysa.example.com/api/v1/access/nfc/", endpoint, ENDPOINT_LENGTH);
   wifiManager.addParameter(&endpointparameter);
   // connect or start the settings ap
   wifiManager.autoConnect();
@@ -242,7 +242,7 @@ void loop(void)
     payload.concat("deviceid\":\"");
     payload.concat(chipId);
     payload.concat("\",\"");
-    payload.concat("cardid\":\"");
+    payload.concat("payload\":\"");
     for (uint8_t i = 0; i < cardUIDLength; i++)
     {
       payload.concat(String(cardUID[i], HEX));
@@ -255,12 +255,15 @@ void loop(void)
     int httpCode = http.POST(payload);
     Serial.print("Got response: ");
     Serial.println(httpCode);
-    if(httpCode == 200) {
+    if (httpCode == 200)
+    {
       Serial.println("access granted");
       digitalWrite(RELAY_PIN, HIGH);
       delay(500);
       digitalWrite(RELAY_PIN, LOW);
-    } else {
+    }
+    else
+    {
       Serial.println("access denied");
     }
     http.end();
@@ -271,8 +274,8 @@ void loop(void)
     Serial.println("Timed out waiting for a card");
   }
 
-  //  if (digitalRead(NEWSETTINGS_PIN) == LOW)
-  //  {
-  //    resetSettings();
-  //  }
+  if (digitalRead(RESET_SETTINGS_PIN) == LOW)
+  {
+    resetSettings();
+  }
 }
