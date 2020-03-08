@@ -27,6 +27,9 @@
 // for talking with the server
 #include <HTTPClient.h>
 
+// display
+#include <U8g2lib.h>
+
 // Let's Encrypt Authority X3
 // valid untill 3/17/21, 6:40:46 PM GMT+2
 const char *root_ca =
@@ -74,6 +77,29 @@ PN532 nfc(pn532spi);
 
 // our chipid
 String chipId = String((uint32_t)ESP.getEfuseMac(), HEX);
+
+// display (nokia 5110 PCD8544)
+U8G2_PCD8544_84X48_1_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/13, /* data=*/15, /* cs=*/16, /* dc=*/2, /* reset=*/4);
+
+#define trehacklablogow 29
+#define trehacklablogoh 48
+static unsigned char trehacklablogo[] = {
+    0x80, 0xff, 0xff, 0x1f, 0x80, 0xff, 0xff, 0x1f, 0x80, 0xff, 0xff, 0x1f,
+    0x80, 0xff, 0xff, 0x1f, 0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e,
+    0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e,
+    0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e, 0xff, 0xff, 0x03, 0x1e,
+    0xff, 0xff, 0x03, 0x1e, 0xff, 0xff, 0x03, 0x1e, 0xff, 0xff, 0x03, 0x1e,
+    0x00, 0x00, 0x00, 0x1e, 0xfc, 0xff, 0x00, 0x1e, 0xfc, 0xff, 0x00, 0x1e,
+    0xfc, 0xff, 0x00, 0x1e, 0xfc, 0xff, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e,
+    0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e,
+    0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e,
+    0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e,
+    0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e,
+    0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e,
+    0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e,
+    0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e,
+    0x80, 0x07, 0x00, 0x1e, 0x80, 0x07, 0x00, 0x1e, 0x80, 0xff, 0xff, 0x1f,
+    0x80, 0xff, 0xff, 0x1f, 0x80, 0xff, 0xff, 0x1f, 0x80, 0xff, 0xff, 0x1f};
 
 // callback for saving the config
 void configModeCallback(WiFiManager *wifiManager)
@@ -126,10 +152,77 @@ void readConfig()
   configFile.close();
 }
 
+void drawIdleScreen()
+{
+  // idle screen
+  u8g2.firstPage();
+  do
+  {
+    u8g2.drawXBM(5, 0, trehacklablogow, trehacklablogoh, trehacklablogo);
+    u8g2.setFont(u8g2_font_tenfatguys_tf);
+    u8g2.drawStr(40, 20, "TRE");
+    u8g2.drawStr(40, 40, "NFC");
+  } while (u8g2.nextPage());
+}
+
+void drawStartupScreen()
+{
+  // idle screen
+  u8g2.firstPage();
+  do
+  {
+    u8g2.drawXBM(5, 0, trehacklablogow, trehacklablogoh, trehacklablogo);
+    u8g2.setFont(u8g2_font_tenfatguys_tf);
+    u8g2.drawStr(40, 20, "Please");
+    u8g2.drawStr(40, 40, "Wait");
+  } while (u8g2.nextPage());
+}
+
+void drawErrorScreen(String errmsg)
+{
+  u8g2.firstPage();
+  do
+  {
+    u8g2.drawXBM(5, 0, trehacklablogow, trehacklablogoh, trehacklablogo);
+    u8g2.setFont(u8g2_font_tenfatguys_tf);
+    u8g2.drawStr(40, 20, "Error");
+    u8g2.setCursor(40, 40);
+    u8g2.print(errmsg);
+  } while (u8g2.nextPage());
+}
+
+void drawCardRead(String cardid)
+{
+  u8g2.firstPage();
+  do
+  {
+    u8g2.setFont(u8g2_font_tenfatguys_tf);
+    u8g2.drawStr(0, 20, "Card:");
+    u8g2.setFont(u8g2_font_t0_11_tf);
+    u8g2.setCursor(0, 40);
+    u8g2.print(cardid);
+  } while (u8g2.nextPage());
+}
+
+void drawWelcome(String name)
+{
+  u8g2.firstPage();
+  do
+  {
+    u8g2.setFont(u8g2_font_tenfatguys_tf);
+    u8g2.drawStr(10, 20, "Welcome");
+    u8g2.setCursor(10, 40);
+    u8g2.print(name);
+  } while (u8g2.nextPage());
+}
+
 void setup()
 {
   Serial.begin(115200);
   Serial.println("Starting up");
+
+  u8g2.begin();
+  drawStartupScreen();
 
   pinMode(RESET_SETTINGS_PIN, INPUT_PULLUP);
   pinMode(RELAY_PIN, OUTPUT);
@@ -139,6 +232,7 @@ void setup()
   if (!versiondata)
   {
     Serial.print("Didn't find PN53x board check connections, halting");
+    drawErrorScreen("noreader");
     while (1)
     {
       delay(10);
@@ -167,6 +261,7 @@ void setup()
   if (!SPIFFS.begin(true))
   {
     Serial.println("Failed to start or format SPIFFS, freezing");
+    drawErrorScreen("SPIFFS");
     while (1)
     {
       delay(10);
@@ -206,6 +301,9 @@ void setup()
 
 void loop(void)
 {
+  // show our idle screen
+  drawIdleScreen();
+
   boolean cardRead;
   uint8_t cardUID[] = {0, 0, 0, 0, 0, 0, 0}; // Buffer to store the returned cardUID
   uint8_t cardUIDLength;                     // Length of the cardUID (4 or 7 bytes depending on ISO14443A card type)
@@ -238,16 +336,21 @@ void loop(void)
     http.addHeader("Content-Type", "application/json");
 
     // TODO: there must be a better way to build the json string
+    String cardid = "";
+    for (uint8_t i = 0; i < cardUIDLength; i++)
+    {
+      cardid.concat(String(cardUID[i], HEX));
+    }
+
     String payload = "{\"";
     payload.concat("deviceid\":\"");
     payload.concat(chipId);
     payload.concat("\",\"");
     payload.concat("payload\":\"");
-    for (uint8_t i = 0; i < cardUIDLength; i++)
-    {
-      payload.concat(String(cardUID[i], HEX));
-    }
+    payload.concat(cardid);
     payload.concat("\"}");
+
+    drawCardRead(cardid);
 
     Serial.print("request data: ");
     Serial.println(payload);
@@ -258,12 +361,14 @@ void loop(void)
     if (httpCode == 200)
     {
       Serial.println("access granted");
+      drawWelcome("TempName");
       digitalWrite(RELAY_PIN, HIGH);
-      delay(500);
+      delay(5*1000);
       digitalWrite(RELAY_PIN, LOW);
     }
     else
     {
+      drawIdleScreen();
       Serial.println("access denied");
     }
     http.end();
@@ -271,7 +376,7 @@ void loop(void)
   else
   {
     // PN532 probably timed out waiting for a card
-    Serial.println("Timed out waiting for a card");
+    // Serial.println("Timed out waiting for a card");
   }
 
   if (digitalRead(RESET_SETTINGS_PIN) == LOW)
