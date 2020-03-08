@@ -2,4 +2,25 @@
 
 Simple nfc reader that can be used to activate doors / machines by asking mulysa if the card that was read is ok or not.
 
-Very much a work in progres!
+# Getting started
+
+* power up the device
+* wait a bit and connect to the AP the device is serving
+* configure your wifi credentials and mulysa api endpoint
+* wait a bit more
+* try your card
+* check in mulysa for the incoming request and get your deviceid and cardid from there
+* add the deviceid to access devices
+* add the cardid to your user
+* retry the call, mulysa should respond http 200 and the output pin is toggled
+
+# NOTE!
+
+The code contains the ca cert for doing tls. It will not be valid after
+
+```
+// Let's Encrypt Authority X3
+// valid untill 3/17/21, 6:40:46 PM GMT+2
+```
+
+Todo: figure out if this can be avoided
