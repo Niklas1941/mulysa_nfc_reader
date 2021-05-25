@@ -79,7 +79,7 @@ PN532 nfc(pn532spi);
 String chipId = String((uint32_t)ESP.getEfuseMac(), HEX);
 
 // display (nokia 5110 PCD8544)
-U8G2_PCD8544_84X48_1_4W_SW_SPI u8g2(U8G2_R0, /* clock=*/13, /* data=*/15, /* cs=*/16, /* dc=*/2, /* reset=*/4);
+U8G2_PCD8544_84X48_1_4W_SW_SPI u8g2(U8G2_R2, /* clock=*/13, /* data=*/15, /* cs=*/16, /* dc=*/2, /* reset=*/4);
 
 #define trehacklablogow 29
 #define trehacklablogoh 48
