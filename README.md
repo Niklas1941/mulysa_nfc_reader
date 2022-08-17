@@ -12,15 +12,15 @@ Simple nfc reader that can be used to activate doors / machines by asking mulysa
 * check in mulysa for the incoming request and get your deviceid and cardid from there
 * add the deviceid to access devices
 * add the cardid to your user
-* retry the call, mulysa should respond http 200 and the output pin is toggled
+* retry the card, mulysa should respond http 200 and the output pin is toggled
 
 # NOTE!
 
-The code contains the ca cert for doing tls. It will not be valid after
+The code contains the root ca cert for doing tls. It will not be valid after
 
 ```
-// Let's Encrypt Authority X3
-// valid untill 3/17/21, 6:40:46 PM GMT+2
+// Let's Encrypt ISRG Root X1
+// valid untill 6/4/35, 2:04:38 PM GMT+3
 ```
 
 Todo: figure out if this can be avoided
