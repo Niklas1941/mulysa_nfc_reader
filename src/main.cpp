@@ -97,6 +97,7 @@ enum NeoPixelStates{
   CARDREAD      = 1,
   ACCESSGRANTED = 2,
   ACCESSDENIED  = 3,
+  ERROR         = 4
 };
 
 // For animating the CARDREAD state
@@ -196,6 +197,20 @@ void neoPixelControl(byte state){
       strip.setPixelColor(0,255,0,0);
       break;
 
+    case ERROR:
+      strip.setBrightness(127);
+      if (changetime < millis()){
+        BlinkState = !BlinkState;
+        changetime = millis() + delaytime;
+      }
+
+      if (BlinkState) {
+        strip.setPixelColor(0,255,0,0);
+      }else{
+        strip.setPixelColor(0,0,0,0);
+      }
+      break;
+
     default:
       break;
   }
@@ -233,6 +248,7 @@ void setup()
   uint32_t versiondata = nfc.getFirmwareVersion();
   if (!versiondata)
   {
+    NeoPixelState = ERROR;
     Serial.print("Didn't find PN53x board check connections, halting");
     while (1)
     {
@@ -261,6 +277,7 @@ void setup()
 
   if (!SPIFFS.begin(true))
   {
+    NeoPixelState = ERROR;
     Serial.println("Failed to start or format SPIFFS, freezing");
     while (1)
     {
